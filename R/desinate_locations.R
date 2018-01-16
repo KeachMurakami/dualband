@@ -38,11 +38,11 @@ assign_location <-
   function(file, .suffix = c("_leaf", "_ref")){
     cat("set references: add link (merge key)\n")
     ref_dat <- assign_xy(file, interactive = T)
-    check_xy(ref_dat)
+    check_xy(ref_dat, x, y, size, by = 0)
 
     cat("set targets: add link (merge key) and id\n")
     leaf_dat <- assign_xy(file, interactive = T)
-    check_xy(leaf_dat)
+    check_xy(leaf_dat, x, y, size, by = 0)
 
     ref_dat %>%
       select(x, y, size, id) %>%
@@ -53,9 +53,9 @@ assign_location <-
 
 check_xy <-
   function(.tbl, x = x, y = y, size = size, by = 0, .silent = F, ...){
-    x <- rlang::enquo(x)
-    y <- rlang::enquo(y)
-    size <- rlang::enquo(size)
+    x <- rlang::quo(x)
+    y <- rlang::quo(y)
+    size <- rlang::quo(size)
 
     x_i <- pull(.tbl, rlang::UQ(x))
     y_i <- pull(.tbl, rlang::UQ(y))
