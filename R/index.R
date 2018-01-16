@@ -8,9 +8,8 @@ index_image <-
   }
 
 fetch_chains <-
-  function(.tbl, num = 5, ...){
-    .tbl %>%
-      group_by(...) %>%
+  function(.tbl_gr, num = 5){
+    .tbl_gr %>%
       summarise(count = n(), path = head(path, 1)) %>%
       filter(count == num) %>%
       select(-count) %>%
@@ -18,9 +17,9 @@ fetch_chains <-
   }
 
 fetch_daybreaks <-
-  function(.tbl, daybreak_hour, delta_min = 3, num = 5, .keep_date_hour = T){
+  function(.tbl_gr, daybreak_hour, delta_min = 3, num = 5, .keep_date_hour = T){
     output <-
-      .tbl %>%
+      .tbl_gr %>%
       mutate(hour = hour(time) + minute(time) / 60 + second(time) / 3600,
              date = lubridate::date(time)) %>%
       filter(between(hour, daybreak_hour - delta_min / 60, daybreak_hour + delta_min / 60, incbounds = T)) %>%
@@ -36,4 +35,3 @@ fetch_daybreaks <-
       return
     }
   }
-
