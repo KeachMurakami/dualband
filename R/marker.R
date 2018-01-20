@@ -1,7 +1,7 @@
 # detect_marker
 
 get_marker <-
-  function(img, x, y, size, outer_size, percent = "95%", occupancy = .1, show_binary = F){
+  function(img, x, y, size, outer_size, percent = "95%", occupancy = .1, show_mapping = F){
 
     trimed_img <-
       trim(img, x, y, size)
@@ -12,11 +12,7 @@ get_marker <-
         imager::threshold(percent) %>%
         # thresh(., w = size * window, h = size * window, offset) %>%
         .[,,,1] %>%
-        fillHull
-
-    if(show_binary){
-      show(img_bin, browser = T)
-    }
+        EBImage::fillHull()
 
     marker_center <-
       img_bin %>%
@@ -53,15 +49,19 @@ get_marker <-
     # set outer_boundary to calculate pixel values nearby the marker
     null_img <- array(0, dim = dim(trimed_img))
     centers <- round(dim(trimed_img)[1:2] / 2)
-    outer_rect <- overdraw(null_img, centers[1], centers[2], outer_size, by = 1)
+    outer_rect <-
+      null_img %>%
+      array_branch(margin = 3) %>%
+      map2(.x = ., .y = marker_center,
+              ~ pri::add_dimension(.x) %>%
+              overdraw(.y$xx, .y$yy, outer_size, 1)) %>%
+      abind::abind()
     non_marker <-
       img_bin %>%
-      dilate(makeBrush(size / 5, shape="diamond")) %>%
-      fillHull %>%
+      EBImage::dilate(EBImage::makeBrush(size / 5, shape="diamond")) %>%
+      EBImage::fillHull() %>%
       `!`
     target_pixel = sum(outer_rect * non_marker)
-
-    # view(outer_rect * non_marker)
 
     target_int <-
       (trimed_img * outer_rect * non_marker) %>%
@@ -70,6 +70,28 @@ get_marker <-
         mtrx[mtrx > 0] %>%
           {tibble(mean = mean(., na.rm = T), median = median(., na.rm = T))}
       })
+
+
+    if(show_mapping){
+      library(imager)
+
+      ref_map <-
+        array(0, dim = dim(trimed_img)) %>%
+        array_branch(margin = 3) %>%
+        map2(.x = ., .y = marker_center,
+             ~ pri::add_dimension(.x) %>%
+             overdraw(.y$xx, .y$yy, .y$ss, by = 1)) %>%
+        abind::abind()
+
+      target_map <-
+        outer_rect * non_marker
+
+      overlayed <-
+        trimed_img -  ref_map * .5 - target_map * .5
+
+      show(overlayed)
+    }
+
 
     marker_center %>%
       bind_rows %>%
