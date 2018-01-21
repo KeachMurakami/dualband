@@ -104,3 +104,84 @@ get_marker <-
            reflectance = target_int / marker_int) %>%
       return()
   }
+
+
+marker_data <-
+  function(index, loc_sw, loc_lw, gamma, .prefixes = c("530", "570"), ...){
+    index_sw <- index %>% filter(prefix == .prefixes[1])
+    index_lw <- index %>% filter(prefix == .prefixes[2])
+
+    img_sw <- index_sw$path %>% read_imgs %>% `^`(., gamma)
+    img_lw <- index_lw$path %>% read_imgs %>% `^`(., gamma)
+
+    if(length(dim(img_sw)) == 2){
+      duplicate_flag_sw <- T
+      img_sw <-
+        img_sw %>%
+        pri::add_dimension() %>%
+        {list(., .)} %>%
+        abind::abind()
+    }
+    if(length(dim(img_lw)) == 2){
+      duplicate_flag_lw <- T
+      img_lw <-
+        img_lw %>%
+        pri::add_dimension() %>%
+        {list(., .)} %>%
+        abind::abind()
+    }
+
+    dat_sw <-
+      loc_sw %>%
+      split(.$location) %>%
+      markers(img_sw, ., ...)
+
+    dat_lw <-
+      loc_lw %>%
+      split(.$location) %>%
+      markers(img_lw, ., ...)
+
+    if(duplicate_flag_sw){
+      dat_sw <-
+        dat_sw %>%
+        map(~ map(., ~ slice(., 1)))
+    }
+    if(duplicate_flag_lw){
+      dat_lw <-
+        dat_lw %>%
+        map(~ map(., ~ slice(., 1)))
+    }
+
+    list(short = dat_sw, long = dat_lw,
+         short_index = select(index_sw, group_vars(index)),
+         long_index = select(index_lw, group_vars(index)))
+  }
+
+markers <-
+  function(imgs, list_locations, ...){
+    list_locations %>%
+      map(function(batch){
+        print(batch$location)
+        get_marker(imgs, x = batch$x, y = batch$y, size = batch$size, ...)
+      }
+      )
+  }
+
+
+marker2pri <-
+  function(list_marker_data){
+    info <-
+      list_marker_data[3:4] %>%
+      map(~ungroup(.) %>% select(-prefix))
+
+    if(identical(info[[1]], info[[2]])){
+      add_info <- mutate(info[[1]], frame = 1:dim(info[[1]])[1])
+    } else {
+      stop("two band images are not paired appropriately")
+    }
+
+    map2_df(list_marker_data[[1]], list_marker_data[[2]],
+            ~ calc_pri(.x$reflectance, .y$reflectance) %>%
+              mutate(frame = seq_along(mean)), .id = "location") %>%
+      left_join(., add_info, by = "frame")
+  }
