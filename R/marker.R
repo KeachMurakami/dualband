@@ -56,9 +56,12 @@ get_marker <-
               ~ pri::add_dimension(.x) %>%
               overdraw(.y$xx, .y$yy, outer_size, 1)) %>%
       abind::abind()
+
+    dilate_mask_size <-
+      round(size / 10) %>% {if_else(. %% 2 == 0, . + 1, .)} # to get odd number for the mask
     non_marker <-
       img_bin %>%
-      EBImage::dilate(EBImage::makeBrush(size / 5, shape="diamond")) %>%
+      EBImage::dilate(EBImage::makeBrush(dilate_mask_size, shape="diamond")) %>%
       EBImage::fillHull() %>%
       `!`
     target_pixel = sum(outer_rect * non_marker)
