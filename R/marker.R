@@ -107,12 +107,16 @@ get_marker <-
 
 
 marker_data <-
-  function(index, loc_sw, loc_lw, gamma, .prefixes = c("530", "570"), ...){
+  function(index, loc_sw, loc_lw, gamma, img_sw = NULL, img_lw = NULL, .prefixes = c("530", "570"), ...){
     index_sw <- index %>% filter(prefix == .prefixes[1])
     index_lw <- index %>% filter(prefix == .prefixes[2])
 
-    img_sw <- index_sw$path %>% read_imgs %>% `^`(., gamma)
-    img_lw <- index_lw$path %>% read_imgs %>% `^`(., gamma)
+    if(is.null(img_sw)){
+      img_sw <- index_sw$path %>% read_imgs %>% `^`(., gamma)
+    }
+    if(is.null(img_lw)){
+      img_lw <- index_lw$path %>% read_imgs %>% `^`(., gamma)
+    }
 
     if(length(dim(img_sw)) == 2){
       duplicate_flag_sw <- T
