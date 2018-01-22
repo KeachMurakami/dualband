@@ -121,6 +121,9 @@ marker_data <-
       img_lw <- index_lw$path %>% read_imgs %>% `^`(., gamma)
     }
 
+    duplicate_flag_sw <- F
+    duplicate_flag_lw <- F
+
     if(length(dim(img_sw)) == 2){
       duplicate_flag_sw <- T
       img_sw <-
