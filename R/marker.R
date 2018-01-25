@@ -16,7 +16,7 @@ get_marker <-
 
     marker_center <-
       img_bin %>%
-      bwlabel %>%
+      EBImage::bwlabel %>%
       array_branch(margin = 3) %>%
       map(function(img_split){
           marker_detect <-
@@ -193,5 +193,25 @@ marker2pri <-
     map2_df(list_marker_data[[1]], list_marker_data[[2]],
             ~ calc_pri(.x$reflectance, .y$reflectance) %>%
               mutate(frame = seq_along(mean)), .id = "location") %>%
+      left_join(., add_info, by = "frame")
+  }
+
+marker2param <-
+  function(list_marker_data){
+    info <-
+      list_marker_data[3:4] %>%
+      map(~ungroup(.) %>% select(-prefix))
+
+    if(identical(info[[1]], info[[2]])){
+      add_info <- mutate(info[[1]], frame = 1:dim(info[[1]])[1])
+    } else {
+      stop("two band images are not paired appropriately")
+    }
+
+    map2_df(list_marker_data[[1]], list_marker_data[[2]],
+            ~ calc_pri(.x$reflectance, .y$reflectance) %>%
+              mutate(marker_s = .x$marker$median, target_s = .x$target$median,
+                     marker_l = .y$marker$median, target_l = .y$target$median,
+                     frame = seq_along(mean)), .id = "location") %>%
       left_join(., add_info, by = "frame")
   }
