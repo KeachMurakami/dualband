@@ -37,3 +37,15 @@ overdraw <-
     return(img)
   }
 
+
+stack <-
+  function(list_of_matrix_2d){
+    list_of_matrix_2d %>%
+      abind::abind()
+  }
+
+unstack <-
+  function(array_3d){
+    array_3d %>%
+      array_branch(3)
+  }
