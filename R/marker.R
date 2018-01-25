@@ -109,6 +109,38 @@ get_marker <-
   }
 
 
+marker_datum <-
+  function(index, loc, gamma, img = NULL, ...){
+
+    if(is.null(img)){
+      img <- index$path %>% read_imgs %>% `^`(., gamma)
+    }
+
+    duplicate_flag <- F
+
+    if(length(dim(img)) == 2){
+      duplicate_flag <- T
+      img <-
+        img %>%
+        pri::add_dimension() %>%
+        {list(., .)} %>%
+        abind::abind()
+    }
+
+    dat <-
+      loc %>%
+      split(.$location) %>%
+      markers(img, ., ...)
+
+    if(duplicate_flag){
+      dat <-
+        dat %>%
+        map(~ map(., ~ slice(., 1)))
+    }
+
+    list(dat = dat, index = select(index, group_vars(index)))
+  }
+
 marker_data <-
   function(index, loc_sw, loc_lw, gamma, img_sw = NULL, img_lw = NULL, .prefixes = c("530", "570"), ...){
     index_sw <- index %>% filter(prefix == .prefixes[1])
