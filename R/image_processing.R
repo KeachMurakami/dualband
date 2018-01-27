@@ -49,3 +49,9 @@ unstack <-
     array_3d %>%
       array_branch(3)
   }
+
+add_dim <-
+  function(array){
+    dim(array) <- c(dim(array), 1)
+    return(array)
+  }
