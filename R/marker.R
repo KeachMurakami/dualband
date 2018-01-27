@@ -16,7 +16,7 @@ get_marker <-
 
     marker_center <-
       img_bin %>%
-      EBImage::bwlabel %>%
+      EBImage::bwlabel() %>%
       array_branch(margin = 3) %>%
       map(function(img_split){
           marker_detect <-
