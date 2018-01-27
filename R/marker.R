@@ -160,7 +160,7 @@ marker_data <-
       duplicate_flag_sw <- T
       img_sw <-
         img_sw %>%
-        pri::add_dimension() %>%
+        add_dim %>%
         {list(., .)} %>%
         abind::abind()
     }
@@ -168,7 +168,7 @@ marker_data <-
       duplicate_flag_lw <- T
       img_lw <-
         img_lw %>%
-        pri::add_dimension() %>%
+        add_dim %>%
         {list(., .)} %>%
         abind::abind()
     }
