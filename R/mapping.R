@@ -1,10 +1,3 @@
-library(animation)
-library(fudukue)
-library(dualband)
-library(pri)
-set_read_img("jpg")
-
-
 extract_marker <-
   function(array_piece, white_ratio = .95, occupancy = .001, erode_size = 1, .show = F,
            white_ref_ratio = 3, margin_white_ratio = 1.2, outer_white_ratio = 2, .verbose = F){
