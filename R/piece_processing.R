@@ -20,7 +20,7 @@ divide_piece <-
     # add information required for binarization
     attributes(piece)$binarise <-
       lst(white_ratio = .95,
-          erode_size = 1,
+          morph_size = 1,
           occupancy = .001)
     # add information required for extraction
     attributes(piece)$center <- NULL
@@ -36,17 +36,17 @@ divide_piece <-
 
 
 set_center <-
-  function(img, .check = F, white_ratio = NULL, occupancy = NULL, erode_size = NULL, ..., .verbose = F){
+  function(img, .check = F, white_ratio = NULL, occupancy = NULL, morph_size = NULL, ..., .verbose = F){
     if(is.null(white_ratio)){
       white_ratio <- attributes(img)$binarise$white_ratio
     } else {
       attributes(img)$binarise$white_ratio <- white_ratio
     }
 
-    if(is.null(erode_size)){
-      erode_size <- attributes(img)$binarise$erode_size
+    if(is.null(morph_size)){
+      morph_size <- attributes(img)$binarise$morph_size
     } else {
-      attributes(img)$binarise$erode_size <- erode_size
+      attributes(img)$binarise$morph_size <- morph_size
     }
 
     if(is.null(occupancy)){
@@ -57,8 +57,7 @@ set_center <-
 
     img_bw <-
       img %>%
-      binarise(., wr = white_ratio) %>%
-      set_bw_label(., es = erode_size)
+      binarise(., wr = white_ratio, mrp = morph_size)
 
     if(.check){
       show(img_bw, ...)
@@ -78,7 +77,7 @@ set_center <-
 
 
 binarise <-
-  function(img_, wr){
+  function(img_, wr, mrp){
     if(length(dim(img_)) == 2){
       img_ <- add_dim(img_)
     }
@@ -87,16 +86,10 @@ binarise <-
       add_dim %>%
       imager::threshold(paste0(wr * 100, "%")) %>%
       .[,,,1] %>%
+      EBImage::dilate(kern = EBImage::makeBrush(mrp, shape = "disc")) %>%
       `*`(., 1) %>%
       EBImage::fillHull() %>%
-      return()
-  }
-
-
-set_bw_label <-
-  function(img_bw, es){
-    img_bw %>%
-      EBImage::dilate(kern = EBImage::makeBrush(es, shape = "disc")) %>%
+      EBImage::erode(kern = EBImage::makeBrush(mrp, shape = "disc")) %>%
       EBImage::bwlabel() %>%
       return()
   }
@@ -267,4 +260,17 @@ map_full <-
     }
 
     return(result)
+  }
+
+
+### deal with attributes
+
+set_attr <-
+  function(attr, img){
+    attributes(img)$geometry <- attr$geometry
+    attributes(img)$binarise <- attr$binarise
+    attributes(img)$extract <- attr$extract
+    attributes(img)$center <- attr$center
+    
+    return(img)
   }
