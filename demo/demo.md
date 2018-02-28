@@ -1,5 +1,5 @@
     library(tidyverse)
-    knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+    knitr::opts_chunk$set(echo = TRUE, warning = FALSE, cache = T, out.width = "50%")
     # load core functions and libraries
     library(dualband)
     library(imager)
@@ -10,8 +10,8 @@
 Demo
 ====
 
-Pre-processing
---------------
+Load images
+-----------
 
     (img_files <- dir("sample_data/", full.names = T))
 
@@ -27,7 +27,7 @@ Pre-processing
     ## Only the first frame of the image stack is displayed.
     ## To display all frames use 'all = TRUE'.
 
-![](demo_files/figure-markdown_strict/get_images-1.png)
+<img src="demo_files/figure-markdown_strict/load_images-1.png" width="50%" />
 
 Divide images into small pieces
 -------------------------------
@@ -55,6 +55,22 @@ The images are divided into a list of small images---called pieces.
       split(.$location) %>%
       map(~ divide_piece(., img_demo))
 
+    piece_demo %>%
+      map(dualband::show, browser = F)
+
+    ## Only the first frame of the image stack is displayed.
+    ## To display all frames use 'all = TRUE'.
+    ## Only the first frame of the image stack is displayed.
+    ## To display all frames use 'all = TRUE'.
+
+<img src="demo_files/figure-markdown_strict/split_into_pieces-1.png" width="50%" /><img src="demo_files/figure-markdown_strict/split_into_pieces-2.png" width="50%" />
+
+    ## $a
+    ## NULL
+    ## 
+    ## $b
+    ## NULL
+
 Detect markers
 --------------
 
@@ -68,7 +84,7 @@ changed. Returns `NULL` when the `.check = T`.
       map(~ set_center(., .check = T, browser = F,
                        white_ratio = .95, erode_size = 1, occupancy = .001))
 
-![](demo_files/figure-markdown_strict/set_center-1.png)![](demo_files/figure-markdown_strict/set_center-2.png)
+<img src="demo_files/figure-markdown_strict/set_center-1.png" width="50%" /><img src="demo_files/figure-markdown_strict/set_center-2.png" width="50%" />
 
     ## $a
     ## NULL
@@ -108,7 +124,7 @@ Returns `NULL` when the `.check = T`.
     ## Only the first frame of the image stack is displayed.
     ## To display all frames use 'all = TRUE'.
 
-![](demo_files/figure-markdown_strict/extract_regions-1.png)![](demo_files/figure-markdown_strict/extract_regions-2.png)
+<img src="demo_files/figure-markdown_strict/set_rois-1.png" width="50%" /><img src="demo_files/figure-markdown_strict/set_rois-2.png" width="50%" />
 
     ## $a
     ## NULL
@@ -121,7 +137,22 @@ Returns `NULL` when the `.check = T`.
       map(~ set_masks(., .check = F, browser = F,
                       ref_white_ratio = 1/5, margin_white_ratio = 1.2, outer_white_ratio = 2))
 
-![](demo_files/figure-markdown_strict/unnamed-chunk-1-1.png)
+    sizes <-
+      c(ref = .5, white = 1, margin = 1.2, outer = 2)
+    colors <-
+      c(ref = "grey50", white = "white", margin = "black", outer = "orange")
+
+    rectangles <-
+      map2(rev(sizes), rev(colors),
+           ~ annotate(geom = "rect", xmin = -.x, xmax = .x, ymin = -.x, ymax = .x, fill = .y))
+
+    tibble() %>%
+      ggplot(aes()) +
+      theme_minimal() +
+      rectangles +
+      coord_fixed()
+
+<img src="demo_files/figure-markdown_strict/geometry-1.png" width="50%" />
 
 -   ref\_white\_ratio (0--1)
     -   grey / white
@@ -173,7 +204,7 @@ on the input image.
     ## Only the first frame of the image stack is displayed.
     ## To display all frames use 'all = TRUE'.
 
-![](demo_files/figure-markdown_strict/mapping_on_pieces-1.png)
+<img src="demo_files/figure-markdown_strict/mapping-1.png" width="50%" />
 
 Session information
 ===================
@@ -204,6 +235,7 @@ Session information
     ##  broom          0.4.3      2017-11-20
     ##  cellranger     1.1.0      2016-07-27
     ##  cli            1.0.0      2017-11-05
+    ##  codetools      0.2-14     2015-07-15
     ##  colorspace     1.2-6      2015-03-11
     ##  crayon         1.3.4      2017-09-16
     ##  devtools       1.12.0     2016-06-24
@@ -274,6 +306,7 @@ Session information
     ##  CRAN (R 3.3.2)                         
     ##  cran (@1.1.0)                          
     ##  CRAN (R 3.3.2)                         
+    ##  CRAN (R 3.3.1)                         
     ##  CRAN (R 3.3.1)                         
     ##  CRAN (R 3.3.2)                         
     ##  CRAN (R 3.3.0)                         

@@ -2,11 +2,12 @@
 title: "demo"
 author: "Keach Murakami"
 output: md_document
+# output: html_document
 ---
 
 ```{r setup, warning = F, message = F}
 library(tidyverse)
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, cache = T, out.width = "50%")
 # load core functions and libraries
 library(dualband)
 library(imager)
@@ -17,9 +18,9 @@ set_read_img("jpg")
 
 # Demo
 
-## Pre-processing
+## Load images
 
-```{r get_images}
+```{r load_images}
 (img_files <- dir("sample_data/", full.names = T))
 
 img_demo <-
@@ -51,6 +52,9 @@ piece_demo <-
   location_demo %>%
   split(.$location) %>%
   map(~ divide_piece(., img_demo))
+
+piece_demo %>%
+  map(dualband::show, browser = F)
 ```
 
 
@@ -90,7 +94,7 @@ This function appends attributes related to ROIS to the input image.
 That is, only attributes will be changed.
 Returns `NULL` when the `.check = T`.
 
-```{r extract_regions}
+```{r set_rois}
 piece_demo_1 %>%
   map(~ set_masks(., .check = T, browser = F,
                   ref_white_ratio = 1/5, margin_white_ratio = 1.2, outer_white_ratio = 2))
@@ -101,7 +105,7 @@ piece_demo_2 <-
                   ref_white_ratio = 1/5, margin_white_ratio = 1.2, outer_white_ratio = 2))
 ```
 
-```{r echo = F}
+```{r geometry}
 
 sizes <-
   c(ref = .5, white = 1, margin = 1.2, outer = 2)
@@ -130,7 +134,7 @@ tibble() %>%
 
 Statistics can be summarised by `extract_reflectance`.
 
-```{r calculate_values}
+```{r summarise}
 piece_demo_2 %>%
   map(extract_reflectance)
 ```
@@ -140,7 +144,7 @@ piece_demo_2 %>%
 
 Map reference (i.e. reflectance standard) and target (i.e. leaf) regions on the input image.
 
-```{r mapping_on_pieces}
+```{r mapping}
 masked_pieces_demo <-
   piece_demo_2 %>%
   # adjust mapping colors and pixel values
