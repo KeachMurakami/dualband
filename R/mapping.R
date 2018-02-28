@@ -92,15 +92,10 @@ piece2center <-
           filter(s.area > expected_size) %>%
           arrange(desc(s.area))
 
-        if(nrow(marker_detected) != 1 & .show){
-          cat(paste0("markers may be splitted. detected ",
-                     nrow(marker_detected),
-                     " locations in binarized image.\n"))
-
-          view(img_3d_bw)
-          print(select(marker_detected, row_index, area, expected_size))
+        if(nrow(marker_detected) > 1 & .verbose){
+          warning("Warning in detecting marker-center: several white areas were detected")
         }
-
+        
         computed_moment_info <-
           EBImage::computeFeatures.moment(img_mtrx) %>%
           as_tibble
