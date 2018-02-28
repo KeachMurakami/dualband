@@ -1,0 +1,160 @@
+---
+title: "demo"
+author: "Keach Murakami"
+output: md_document
+---
+
+```{r setup, warning = F, message = F}
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+# load core functions and libraries
+library(dualband)
+library(imager)
+library(EBImage)
+library(pri)
+set_read_img("jpg")
+```
+
+# Demo
+
+## Pre-processing
+
+```{r get_images}
+(img_files <- dir("sample_data/", full.names = T))
+
+img_demo <-
+  img_files %>%
+  read_imgs %>%
+  .^3 # correct gamma value
+
+dualband::show(img_demo, browser = F, all = F)
+```
+
+## Divide images into small pieces
+
+To divide images, the locations should be approximated.
+
+```{r set_locations}
+location_demo <-
+  tribble(
+     ~ x,  ~ y, ~ size, ~ location,
+     474,  501,    100,    "a",
+    1497,  933,    100,    "b"
+  )
+location_demo
+```
+
+The images are divided into a list of small images---called pieces.
+
+```{r split_into_pieces}
+piece_demo <-
+  location_demo %>%
+  split(.$location) %>%
+  map(~ divide_piece(., img_demo))
+```
+
+
+## Detect markers
+
+Determine a center of the marker with `set_center`.
+A binarised piece can be checked as the side-effect (`.check = T`).
+This function appends attributes related to binarisation, eroding, and geomery of white-reflectance to the input image.
+That is, only attributes will be changed.
+Returns `NULL` when the `.check = T`.
+
+```{r set_center, message = F}
+piece_demo %>%
+  map(~ set_center(., .check = T, browser = F,
+                   white_ratio = .95, erode_size = 1, occupancy = .001))
+
+piece_demo_1 <-
+  piece_demo %>%
+  map(~ set_center(., .check = F, browser = F,
+                   white_ratio = .95, erode_size = 1, occupancy = .001))
+
+```
+
+- white_ratio (0--1)
+    - bright pixels within top `X%` are regarded as the white regions.
+- erode_size (int)
+    - if the white regions are separated, the regions may be merged by increasing this factor.
+- occupancy (0--1)
+    - smaller regions can be removed by increasing this factor although the smaller regions do not count as long as a true white region is the largest.
+  
+  
+## Set ROIs
+
+Determine the ROIs with `set_masks`.
+A masked piece can be checked as the side-effect (`.check = T`).
+This function appends attributes related to ROIS to the input image.
+That is, only attributes will be changed.
+Returns `NULL` when the `.check = T`.
+
+```{r extract_regions}
+piece_demo_1 %>%
+  map(~ set_masks(., .check = T, browser = F,
+                  ref_white_ratio = 1/5, margin_white_ratio = 1.2, outer_white_ratio = 2))
+
+piece_demo_2 <-
+  piece_demo_1 %>%
+  map(~ set_masks(., .check = F, browser = F,
+                  ref_white_ratio = 1/5, margin_white_ratio = 1.2, outer_white_ratio = 2))
+```
+
+```{r echo = F}
+
+sizes <-
+  c(ref = .5, white = 1, margin = 1.2, outer = 2)
+colors <-
+  c(ref = "grey50", white = "white", margin = "black", outer = "orange")
+
+rectangles <-
+  map2(rev(sizes), rev(colors),
+       ~ annotate(geom = "rect", xmin = -.x, xmax = .x, ymin = -.x, ymax = .x, fill = .y))
+
+tibble() %>%
+  ggplot(aes()) +
+  theme_minimal() +
+  rectangles +
+  coord_fixed()
+```
+
+- ref_white_ratio (0--1)
+    - grey / white
+- margin_white_ratio ( > 1)
+    - black / white
+- outer_white_ratio ( > margin_white_ratio)
+    - orange / white
+
+## Summarise marker data
+
+Statistics can be summarised by `extract_reflectance`.
+
+```{r calculate_values}
+piece_demo_2 %>%
+  map(extract_reflectance)
+```
+
+
+## Check mapping
+
+Map reference (i.e. reflectance standard) and target (i.e. leaf) regions on the input image.
+
+```{r mapping_on_pieces}
+masked_pieces_demo <-
+  piece_demo_2 %>%
+  # adjust mapping colors and pixel values
+  map(check_mask, map_rgb = c(marker = 1, target = 3), map_int = c(marker = 10, target = 10))
+
+masked_full_demo <-
+  map_full(list_pieces = masked_pieces_demo, full_size_img = img_demo)
+
+dualband::show(masked_full_demo, browser = F)
+```
+
+
+# Session information
+
+```{r session_info}
+devtools::session_info()
+```
