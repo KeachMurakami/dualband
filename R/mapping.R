@@ -56,13 +56,13 @@ binarize <-
   }
 
 check_pieces <-
-  function(img, white_ratio = .95, occupancy = .001, erode_size = 1, .show = F, .verbose = F){
+  function(img, white_ratio = .95, occupancy = .001, erode_size = 1, ...){
     img_2d_bw <-
       binarize(img, white_ratio) %>%
       EBImage::dilate(kern = EBImage::makeBrush(erode_size, shape = "disc")) %>%
       EBImage::bwlabel()
 
-    view(img - (!img_2d_bw) * .5)
+    show(img - (!img_2d_bw) * .5, ...)
   }
 
 piece2center <-
@@ -154,6 +154,31 @@ piece_false_color <-
     attributes(out_img)$originals <- attributes(img_raw)$originals
     return(out_img)
   }
+
+merge_piece <-
+  function(piece, img){
+    piece_location <-
+      attributes(piece)$originals
+    x_range <-
+      piece_location %>%
+      {(.$x - .$size):(.$x + .$size)}
+    y_range <-
+      piece_location %>%
+      {(.$y - .$size):(.$y + .$size)}
+
+    dim_img <- length(dim(img))
+    if(dim_img == 4){
+      img[x_range, y_range,,] <- piece
+      return(img)
+    } else if(dim_img == 3){
+      img[x_range, y_range,] <- piece
+      return(img)
+    } else {
+      img[x_range, y_range] <- piece
+      return(img)
+    }
+  }
+
 
 img_false_color <-
   function(img, list_pieces){
