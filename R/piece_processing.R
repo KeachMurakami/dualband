@@ -55,8 +55,6 @@ set_center <-
       attributes(img)$binarise$occupancy <- occupancy
     }
 
-    print(attributes(img))
-
     img_bw <-
       img %>%
       binarise(., wr = white_ratio) %>%
@@ -71,8 +69,6 @@ set_center <-
       img_bw %>%
       unstack %>%
       map(~ set_bw_center(., ocp = occupancy, .verbose = .verbose))
-
-    print(centers)
 
     attributes(img)$center <- centers
 
