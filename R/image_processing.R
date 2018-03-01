@@ -2,11 +2,26 @@ show <- pri::view
 
 # image processing
 
+# may be developed for speed
+#
+# grids <-
+#   function(x_cent, y_cent, size){
+#     if_else(is.na(x_cent * y_cent * size),
+#             true = list(NA, NA),
+#             false = lst(x = (x_cent-size):(x_cent+size),
+#                         y = (y_cent-size):(y_cent+size)))
+#   }
+
 grids <-
   function(x_cent, y_cent, size){
-    x <- (x_cent-size):(x_cent+size)
-    y <- (y_cent-size):(y_cent+size)
-    return(list(x, y))
+    if(is.na(x_cent * y_cent * size)){
+      lst(x = NA, y = NA) %>%
+        return()
+    } else {
+      lst(x = (x_cent-size):(x_cent+size),
+          y = (y_cent-size):(y_cent+size)) %>%
+        return()
+    }
   }
 
 trim <-
