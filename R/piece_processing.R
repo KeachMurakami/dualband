@@ -259,7 +259,7 @@ map_full <-
         {(.$y - .$size):(.$y + .$size)}
 
       x_range <- x_range[between(x_range, 1, range_full[1])]
-      y_range <- y_range[between(y_range, 1, range_full[1])]
+      y_range <- y_range[between(y_range, 1, range_full[2])]
 
       result[x_range, y_range, ,] <- piece
     }
