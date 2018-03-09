@@ -241,7 +241,7 @@ extract_target <-
 map_full <-
   function(list_pieces, full_size_img){
 
-    range_full <- dim(full_size)[1:2]
+    range_full <- dim(full_size_img)[1:2]
 
     result <-
       EBImage::Image(full_size_img) %>%
