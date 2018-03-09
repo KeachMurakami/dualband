@@ -241,6 +241,8 @@ extract_target <-
 map_full <-
   function(list_pieces, full_size_img){
 
+    range_full <- dim(full_size)[1:2]
+
     result <-
       EBImage::Image(full_size_img) %>%
       EBImage::channel("rgb")
@@ -255,6 +257,9 @@ map_full <-
       y_range <-
         piece_location %>%
         {(.$y - .$size):(.$y + .$size)}
+
+      x_range <- x_range[between(x_range, 1, range_full[1])]
+      y_range <- y_range[between(y_range, 1, range_full[1])]
 
       result[x_range, y_range, ,] <- piece
     }
@@ -271,6 +276,6 @@ set_attr <-
     attributes(img)$binarise <- attr$binarise
     attributes(img)$extract <- attr$extract
     attributes(img)$center <- attr$center
-    
+
     return(img)
   }
